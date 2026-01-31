@@ -43,9 +43,9 @@ Voice Input → VoxNovaVoiceInteractionSession (Android STT)
 | `ClawdbotClient` | WebSocket client for Clawdbot gateway (protocol v3). Handles connection, chat messages, streaming response aggregation |
 | `VoxNovaVoiceInteractionSession` | Main voice interaction logic. Manages STT, UI overlay, and TTS coordination |
 | `TTSManager` | Multi-provider TTS with fallback chain: Cartesia → ElevenLabs → Google TTS |
-| `SettingsActivity` | Configuration UI for gateway URL, auth tokens, API keys, and debugging |
+| `SettingsActivity` | Configuration UI for gateway URL, auth tokens, API keys, language, and silence timeout |
 | `PreferencesManager` | SharedPreferences wrapper for app configuration |
-| `DebugLogger` | In-memory logging (max 100 entries) with UI listener support |
+| `DebugLogger` | In-memory logging (max 100 entries) |
 
 ### WebSocket Protocol (ClawdbotClient)
 - Protocol version: 3
@@ -55,7 +55,8 @@ Voice Input → VoxNovaVoiceInteractionSession (Android STT)
 
 ### TTS Provider Priority
 1. **Cartesia AI** - Uses voice "Daniela MX" / `sonic-2` model (requires API key)
-2. **Google TTS** - Default fallback (always available)
+2. **ElevenLabs** - Uses voice "Lily" / `eleven_multilingual_v2` model (requires API key)
+3. **Google TTS** - Default fallback (always available)
 
 ### Quick Commands (QuickCommand.java)
 Predefined command buttons shown in the UI overlay. Includes gateway built-in commands (`/status`, `/help`) and Clawdbot skill invocations (`/skill morning-briefing`).
@@ -66,11 +67,20 @@ Runtime settings stored in SharedPreferences:
 - `gateway_url` - Clawdbot WebSocket URL (e.g., `ws://192.168.1.100:18789`)
 - `auth_token` - Clawdbot authentication token
 - `cartesia_api_key` - Optional Cartesia API key for TTS
+- `elevenlabs_api_key` - Optional ElevenLabs API key for TTS
+- `language` - Speech recognition and TTS language (default: `es-MX`)
+- `silence_timeout` - Milliseconds to wait after speech before sending (default: 2000)
 
-## Language & Localization
+## Supported Languages
 
-- UI and speech recognition: Spanish (Mexico) - `es-MX`
-- Status indicators use emoji for visual feedback
+- `es-MX` - Spanish (Mexico)
+- `es-ES` - Spanish (Spain)
+- `en-US` - English (US)
+- `en-GB` - English (UK)
+- `pt-BR` - Portuguese (Brazil)
+- `fr-FR` - French
+- `de-DE` - German
+- `it-IT` - Italian
 
 ## Android Setup
 

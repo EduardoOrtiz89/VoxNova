@@ -6,9 +6,11 @@ A native Android voice assistant app that integrates with Clawdbot AI gateway. V
 
 - **Voice Interaction**: Natural voice input using Android's built-in speech recognition
 - **AI Integration**: Real-time communication with Clawdbot gateway via WebSocket
-- **Multi-provider TTS**: Fallback chain supporting Cartesia AI and Google TTS
+- **Multi-provider TTS**: Fallback chain supporting Cartesia AI, ElevenLabs, and Google TTS
 - **Quick Commands**: Predefined command buttons for common actions
 - **System Integration**: Registers as Android's default digital assistant
+- **Configurable Language**: Support for multiple languages (Spanish, English, Portuguese, French, German, Italian)
+- **Adjustable Silence Timeout**: Configurable delay before voice input is sent (1-10 seconds)
 
 ## Requirements
 
@@ -64,6 +66,9 @@ Configure the following settings in the app:
 | Gateway URL | Clawdbot WebSocket URL (e.g., `ws://192.168.1.100:18789`) |
 | Auth Token | Clawdbot authentication token |
 | Cartesia API Key | Optional API key for Cartesia TTS |
+| ElevenLabs API Key | Optional API key for ElevenLabs TTS |
+| Language | Speech recognition and TTS language (default: Spanish Mexico) |
+| Silence Timeout | Time to wait after speech before sending (1-10 seconds) |
 
 ## Architecture
 
@@ -90,7 +95,21 @@ Voice Input → VoxNovaVoiceInteractionSession (Android STT)
 ### TTS Provider Priority
 
 1. **Cartesia AI** - Voice: "Daniela MX" / Model: `sonic-2` (requires API key)
-2. **Google TTS** - Default fallback (always available)
+2. **ElevenLabs** - Voice: "Lily" / Model: `eleven_multilingual_v2` (requires API key)
+3. **Google TTS** - Default fallback (always available)
+
+### Supported Languages
+
+| Code | Language |
+|------|----------|
+| `es-MX` | Spanish (Mexico) |
+| `es-ES` | Spanish (Spain) |
+| `en-US` | English (US) |
+| `en-GB` | English (UK) |
+| `pt-BR` | Portuguese (Brazil) |
+| `fr-FR` | French |
+| `de-DE` | German |
+| `it-IT` | Italian |
 
 ### WebSocket Protocol
 
@@ -112,8 +131,7 @@ Voice Input → VoxNovaVoiceInteractionSession (Android STT)
 
 - Cleartext HTTP traffic is enabled for local development
 - View Binding is enabled in the build configuration
-- UI and speech recognition configured for Spanish (Mexico) - `es-MX`
 
 ## License
 
-Proprietary - All rights reserved
+MIT License - See [LICENSE](LICENSE) file for details
