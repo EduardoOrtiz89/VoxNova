@@ -66,6 +66,45 @@
                 android:layout_height="wrap_content" android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Voice Recognition Settings -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Voice Recognition" android:textStyle="bold" android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Language" android:textSize="14sp"
+            android:layout_marginBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinnerLanguage"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:layout_marginBottom="16dp" />
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Silence timeout" android:textSize="14sp" />
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+            <com.google.android.material.slider.Slider
+                android:id="@+id/sliderSilenceTimeout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:valueFrom="1"
+                android:valueTo="10"
+                android:stepSize="1" />
+            <TextView
+                android:id="@+id/txtSilenceValue"
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:text="2s"
+                android:textSize="14sp"
+                android:gravity="center" />
+        </LinearLayout>
+
         <!-- Buttons -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:layout_marginBottom="16dp">

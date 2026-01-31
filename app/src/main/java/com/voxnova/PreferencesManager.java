@@ -9,7 +9,12 @@ public class PreferencesManager {
     private static final String KEY_AUTH_TOKEN = "auth_token";
     private static final String KEY_CARTESIA_API_KEY = "cartesia_api_key";
     private static final String KEY_ELEVENLABS_API_KEY = "elevenlabs_api_key";
-    
+    private static final String KEY_LANGUAGE = "language";
+    private static final String KEY_SILENCE_TIMEOUT = "silence_timeout";
+
+    public static final String DEFAULT_LANGUAGE = "es-MX";
+    public static final int DEFAULT_SILENCE_TIMEOUT = 2000; // 2 seconds
+
     private final SharedPreferences prefs;
 
     public PreferencesManager(Context context) {
@@ -50,5 +55,43 @@ public class PreferencesManager {
 
     public boolean isConfigured() {
         return !getGatewayUrl().isEmpty() && !getAuthToken().isEmpty();
+    }
+
+    public String getLanguage() {
+        return prefs.getString(KEY_LANGUAGE, DEFAULT_LANGUAGE);
+    }
+
+    public void setLanguage(String language) {
+        prefs.edit().putString(KEY_LANGUAGE, language).apply();
+    }
+
+    public int getSilenceTimeout() {
+        return prefs.getInt(KEY_SILENCE_TIMEOUT, DEFAULT_SILENCE_TIMEOUT);
+    }
+
+    public void setSilenceTimeout(int timeout) {
+        prefs.edit().putInt(KEY_SILENCE_TIMEOUT, timeout).apply();
+    }
+
+    /**
+     * Returns the language code for TTS (e.g., "es" from "es-MX")
+     */
+    public String getTtsLanguageCode() {
+        String lang = getLanguage();
+        if (lang.contains("-")) {
+            return lang.split("-")[0];
+        }
+        return lang;
+    }
+
+    /**
+     * Returns language and country as separate values for Locale
+     */
+    public String[] getLanguageParts() {
+        String lang = getLanguage();
+        if (lang.contains("-")) {
+            return lang.split("-");
+        }
+        return new String[]{lang, ""};
     }
 }

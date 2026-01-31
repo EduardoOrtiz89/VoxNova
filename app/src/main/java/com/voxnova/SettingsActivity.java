@@ -16,13 +16,21 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText editGatewayUrl, editAuthToken, editCartesiaKey, editElevenLabsKey;
-    private TextView txtStatus, txtDebugLog;
+    private TextView txtStatus, txtDebugLog, txtSilenceValue;
+    private Spinner spinnerLanguage;
+    private Slider sliderSilenceTimeout;
     private PreferencesManager prefs;
+
+    private static final String[] LANGUAGE_CODES = {"es-MX", "es-ES", "en-US", "en-GB", "pt-BR", "fr-FR", "de-DE", "it-IT"};
+    private static final String[] LANGUAGE_NAMES = {"Spanish (Mexico)", "Spanish (Spain)", "English (US)", "English (UK)", "Portuguese (Brazil)", "French", "German", "Italian"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +52,21 @@ public class SettingsActivity extends AppCompatActivity {
         editElevenLabsKey = findViewById(R.id.editElevenLabsKey);
         txtStatus = findViewById(R.id.txtStatus);
         txtDebugLog = findViewById(R.id.txtDebugLog);
-        
+        txtSilenceValue = findViewById(R.id.txtSilenceValue);
+        spinnerLanguage = findViewById(R.id.spinnerLanguage);
+        sliderSilenceTimeout = findViewById(R.id.sliderSilenceTimeout);
+
+        // Setup language spinner
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, LANGUAGE_NAMES);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerLanguage.setAdapter(adapter);
+
+        // Setup silence timeout slider
+        sliderSilenceTimeout.addOnChangeListener((slider, value, fromUser) -> {
+            txtSilenceValue.setText((int) value + "s");
+        });
+
         findViewById(R.id.btnSave).setOnClickListener(v -> saveSettings());
         findViewById(R.id.btnTestConnection).setOnClickListener(v -> testConnection());
         findViewById(R.id.btnOpenAssistantSettings).setOnClickListener(v -> openAssistantSettings());
@@ -75,14 +97,29 @@ public class SettingsActivity extends AppCompatActivity {
         editAuthToken.setText(prefs.getAuthToken());
         editCartesiaKey.setText(prefs.getCartesiaApiKey());
         editElevenLabsKey.setText(prefs.getElevenLabsApiKey());
+
+        // Load language
+        String savedLang = prefs.getLanguage();
+        for (int i = 0; i < LANGUAGE_CODES.length; i++) {
+            if (LANGUAGE_CODES[i].equals(savedLang)) {
+                spinnerLanguage.setSelection(i);
+                break;
+            }
+        }
+
+        // Load silence timeout (stored in ms, display in seconds)
+        int timeoutMs = prefs.getSilenceTimeout();
+        int timeoutSec = timeoutMs / 1000;
+        sliderSilenceTimeout.setValue(Math.max(1, Math.min(10, timeoutSec)));
+        txtSilenceValue.setText(timeoutSec + "s");
     }
 
     private void saveSettings() {
         String url = getText(editGatewayUrl);
         String token = getText(editAuthToken);
-        
+
         if (url.isEmpty() || token.isEmpty()) {
-            Toast.makeText(this, "URL y Token requeridos", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "URL and Token required", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -90,8 +127,18 @@ public class SettingsActivity extends AppCompatActivity {
         prefs.setAuthToken(token);
         prefs.setCartesiaApiKey(getText(editCartesiaKey));
         prefs.setElevenLabsApiKey(getText(editElevenLabsKey));
-        
-        Toast.makeText(this, "Guardado ✓", Toast.LENGTH_SHORT).show();
+
+        // Save language
+        int langIndex = spinnerLanguage.getSelectedItemPosition();
+        if (langIndex >= 0 && langIndex < LANGUAGE_CODES.length) {
+            prefs.setLanguage(LANGUAGE_CODES[langIndex]);
+        }
+
+        // Save silence timeout (convert seconds to ms)
+        int timeoutSec = (int) sliderSilenceTimeout.getValue();
+        prefs.setSilenceTimeout(timeoutSec * 1000);
+
+        Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
         updateStatus();
     }
     
@@ -147,13 +194,15 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void updateStatus() {
         StringBuilder sb = new StringBuilder();
-        sb.append(prefs.isConfigured() ? "✓ Gateway configurado\n" : "✗ Gateway no configurado\n");
-        sb.append(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) 
-                == PackageManager.PERMISSION_GRANTED ? "✓ Micrófono OK\n" : "✗ Sin permiso micrófono\n");
-        sb.append(!prefs.getCartesiaApiKey().isEmpty() ? "✓ Cartesia TTS\n" : "");
-        sb.append(!prefs.getElevenLabsApiKey().isEmpty() ? "✓ ElevenLabs TTS\n" : "");
-        sb.append(prefs.getCartesiaApiKey().isEmpty() && prefs.getElevenLabsApiKey().isEmpty() 
-                ? "→ Usando Google TTS\n" : "");
+        sb.append(prefs.isConfigured() ? "OK Gateway configured\n" : "X Gateway not configured\n");
+        sb.append(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_GRANTED ? "OK Microphone\n" : "X No microphone permission\n");
+        sb.append(!prefs.getCartesiaApiKey().isEmpty() ? "OK Cartesia TTS\n" : "");
+        sb.append(!prefs.getElevenLabsApiKey().isEmpty() ? "OK ElevenLabs TTS\n" : "");
+        sb.append(prefs.getCartesiaApiKey().isEmpty() && prefs.getElevenLabsApiKey().isEmpty()
+                ? "-> Using Google TTS\n" : "");
+        sb.append("Language: ").append(prefs.getLanguage()).append("\n");
+        sb.append("Silence timeout: ").append(prefs.getSilenceTimeout() / 1000).append("s\n");
         txtStatus.setText(sb.toString());
     }
 

@@ -25,7 +25,9 @@ import okhttp3.Response;
 public class TTSManager {
     private static final String CARTESIA_URL = "https://api.cartesia.ai/tts/bytes";
     private static final String CARTESIA_VOICE_ID = "5c5ad5e7-1020-476b-8b91-fdcbe9cc313c"; // Daniela MX
-    
+    private static final String ELEVENLABS_URL = "https://api.elevenlabs.io/v1/text-to-speech/";
+    private static final String ELEVENLABS_VOICE_ID = "pFZP5JQG7iQjIQuC4Bku"; // Lily - Spanish
+
     public interface TTSCallback {
         void onStart();
         void onDone();
@@ -56,7 +58,8 @@ public class TTSManager {
         try {
             googleTTS = new TextToSpeech(context, status -> {
                 if (status == TextToSpeech.SUCCESS) {
-                    googleTTS.setLanguage(new Locale("es", "MX"));
+                    String[] langParts = prefs.getLanguageParts();
+                    googleTTS.setLanguage(new Locale(langParts[0], langParts[1]));
                     googleTTS.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                         @Override public void onStart(String id) { 
                             if (pendingCallback != null) pendingCallback.onStart(); 
@@ -86,13 +89,18 @@ public class TTSManager {
         this.pendingCallback = callback;
         String cleanText = stripEmojis(text);
         DebugLogger.log("TTS speak: " + cleanText.substring(0, Math.min(40, cleanText.length())) + "...");
-        
+
         String cartesiaKey = prefs.getCartesiaApiKey();
+        String elevenLabsKey = prefs.getElevenLabsApiKey();
+
         if (cartesiaKey != null && !cartesiaKey.isEmpty()) {
             DebugLogger.log("Trying Cartesia...");
             speakWithCartesia(cleanText, cartesiaKey, callback);
+        } else if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
+            DebugLogger.log("Trying ElevenLabs...");
+            speakWithElevenLabs(cleanText, elevenLabsKey, callback);
         } else {
-            DebugLogger.log("Using Google TTS (no Cartesia key)");
+            DebugLogger.log("Using Google TTS (no API keys)");
             speakWithGoogle(cleanText, callback);
         }
     }
@@ -105,7 +113,7 @@ public class TTSManager {
                 JSONObject body = new JSONObject();
                 body.put("model_id", "sonic-2");
                 body.put("transcript", text);
-                body.put("language", "es");
+                body.put("language", prefs.getTtsLanguageCode());
                 
                 JSONObject voice = new JSONObject();
                 voice.put("mode", "id");
@@ -138,12 +146,69 @@ public class TTSManager {
                 } else {
                     String errorBody = response.body() != null ? response.body().string() : "no body";
                     DebugLogger.error("Cartesia failed " + response.code() + ": " + errorBody.substring(0, Math.min(100, errorBody.length())));
-                    // Fallback to Google
-                    mainHandler.post(() -> speakWithGoogle(text, callback));
+                    // Fallback to ElevenLabs, then Google
+                    mainHandler.post(() -> {
+                        String elevenLabsKey = prefs.getElevenLabsApiKey();
+                        if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
+                            speakWithElevenLabs(text, elevenLabsKey, callback);
+                        } else {
+                            speakWithGoogle(text, callback);
+                        }
+                    });
                 }
             } catch (Exception e) {
                 DebugLogger.error("Cartesia exception: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-                // Fallback to Google
+                // Fallback to ElevenLabs, then Google
+                mainHandler.post(() -> {
+                    String elevenLabsKey = prefs.getElevenLabsApiKey();
+                    if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
+                        speakWithElevenLabs(text, elevenLabsKey, callback);
+                    } else {
+                        speakWithGoogle(text, callback);
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private void speakWithElevenLabs(String text, String apiKey, TTSCallback callback) {
+        new Thread(() -> {
+            try {
+                DebugLogger.log("ElevenLabs: building request...");
+
+                JSONObject body = new JSONObject();
+                body.put("text", text);
+                body.put("model_id", "eleven_multilingual_v2");
+
+                JSONObject voiceSettings = new JSONObject();
+                voiceSettings.put("stability", 0.5);
+                voiceSettings.put("similarity_boost", 0.75);
+                body.put("voice_settings", voiceSettings);
+
+                DebugLogger.log("ElevenLabs: sending request...");
+
+                Request request = new Request.Builder()
+                        .url(ELEVENLABS_URL + ELEVENLABS_VOICE_ID)
+                        .addHeader("xi-api-key", apiKey)
+                        .addHeader("Content-Type", "application/json")
+                        .addHeader("Accept", "audio/mpeg")
+                        .post(RequestBody.create(body.toString(), MediaType.get("application/json")))
+                        .build();
+
+                Response response = httpClient.newCall(request).execute();
+
+                DebugLogger.log("ElevenLabs response: " + response.code());
+
+                if (response.isSuccessful() && response.body() != null) {
+                    DebugLogger.log("ElevenLabs: got audio, playing...");
+                    playAudioStream(response.body().byteStream(), callback);
+                } else {
+                    String errorBody = response.body() != null ? response.body().string() : "no body";
+                    DebugLogger.error("ElevenLabs failed " + response.code() + ": " + errorBody.substring(0, Math.min(100, errorBody.length())));
+                    mainHandler.post(() -> speakWithGoogle(text, callback));
+                }
+            } catch (Exception e) {
+                DebugLogger.error("ElevenLabs exception: " + e.getClass().getSimpleName() + " - " + e.getMessage());
                 mainHandler.post(() -> speakWithGoogle(text, callback));
             }
         }).start();

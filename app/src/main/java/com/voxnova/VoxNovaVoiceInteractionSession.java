@@ -324,8 +324,15 @@ public class VoxNovaVoiceInteractionSession extends VoiceInteractionSession {
 
                 Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-MX");
+                intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, prefs.getLanguage());
                 intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+
+                // Configure silence timeout
+                long silenceTimeout = prefs.getSilenceTimeout();
+                intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, silenceTimeout);
+                intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, silenceTimeout);
+                intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, silenceTimeout);
+
                 speechRecognizer.startListening(intent);
 
             } catch (Exception e) {
