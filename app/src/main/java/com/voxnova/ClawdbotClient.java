@@ -44,7 +44,7 @@ public class ClawdbotClient {
         this.authToken = authToken;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.responseBuffer = new StringBuilder();
-        this.sessionKey = "voxnova:android";
+        this.sessionKey = "agent:main:voxnova:android";
         
         DebugLogger.log("ClawdbotClient init, gateway=" + this.gatewayUrl);
         
