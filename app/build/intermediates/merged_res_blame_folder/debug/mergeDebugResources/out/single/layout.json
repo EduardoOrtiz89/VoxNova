@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "/home/eduardo/.gradle/daemon/8.6/com.voxnova.app-mergeDebugResources-38:/layout/activity_settings.xml",
+        "source": "/home/eduardo/.gradle/daemon/8.6/com.voxnova.app-main-41:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "/home/eduardo/.gradle/daemon/8.6/com.voxnova.app-mergeDebugResources-38:/layout/quick_commands_sheet.xml",
+        "source": "/home/eduardo/.gradle/daemon/8.6/com.voxnova.app-main-41:/layout/quick_commands_sheet.xml"
+    },
+    {
+        "merged": "/home/eduardo/.gradle/daemon/8.6/com.voxnova.app-mergeDebugResources-38:/layout/voice_interaction_ui.xml",
+        "source": "/home/eduardo/.gradle/daemon/8.6/com.voxnova.app-main-41:/layout/voice_interaction_ui.xml"
+    },
+    {
+        "merged": "com.voxnova.app-mergeDebugResources-38:/layout/voice_interaction_ui.xml",
+        "source": "com.voxnova.app-main-41:/layout/voice_interaction_ui.xml"
+    }
+]

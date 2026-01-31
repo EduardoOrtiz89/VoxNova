@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="error_color">#FFF44336</color>
+    <color name="listening_color">#FF4CAF50</color>
+    <color name="processing_color">#FFFFC107</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="speaking_color">#FF2196F3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">VoxNova</string>
+    <string name="auth_token">Authentication Token</string>
+    <string name="auth_token_hint">Enter your Clawdbot token</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="connection_success">Connection successful!</string>
+    <string name="enable_instructions">1. Go to Settings → Apps → Default apps\n2. Select \"Digital assistant app\"\n3. Choose VoxNova\n4. Grant permissions when prompted</string>
+    <string name="error_network">Network error. Check your connection.</string>
+    <string name="error_no_config">Please configure Gateway URL and Token in settings</string>
+    <string name="error_speech">Speech recognition error</string>
+    <string name="gateway_url">Gateway URL</string>
+    <string name="gateway_url_hint">http://192.168.1.100:18789</string>
+    <string name="how_to_enable">How to Enable VoxNova as Assistant</string>
+    <string name="listening">Listening...</string>
+    <string name="processing">Processing...</string>
+    <string name="save_settings">Save Settings</string>
+    <string name="settings_saved">Settings saved successfully</string>
+    <string name="settings_title">VoxNova Settings</string>
+    <string name="speaking">Speaking...</string>
+    <string name="tap_to_speak">Tap microphone to speak</string>
+    <string name="test_connection">Test Connection</string>
+    <style name="Theme.VoxNova" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryDark">@color/purple_700</item>
+        <item name="colorAccent">@color/teal_200</item>
+        <item name="android:statusBarColor">@color/purple_700</item>
+    </style>
+    <style name="Theme.VoxNova.Voice" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+</resources>
