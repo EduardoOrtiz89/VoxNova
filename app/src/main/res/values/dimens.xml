@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Panel dimensions -->
+    <dimen name="panel_corner_radius">24dp</dimen>
+    <dimen name="panel_elevation">8dp</dimen>
+    <dimen name="panel_margin">16dp</dimen>
+    <dimen name="panel_padding">24dp</dimen>
+
+    <!-- Status icon -->
+    <dimen name="status_icon_size">64dp</dimen>
+    <dimen name="status_icon_margin_bottom">16dp</dimen>
+
+    <!-- Text sizes -->
+    <dimen name="status_text_size">20sp</dimen>
+    <dimen name="transcript_text_size">16sp</dimen>
+    <dimen name="command_text_size">18sp</dimen>
+
+    <!-- Button dimensions -->
+    <dimen name="button_icon_size">24dp</dimen>
+    <dimen name="button_size">48dp</dimen>
+    <dimen name="button_margin">8dp</dimen>
+
+    <!-- Transcript area -->
+    <dimen name="transcript_max_height">200dp</dimen>
+    <dimen name="transcript_min_height">48dp</dimen>
+
+    <!-- Commands panel -->
+    <dimen name="commands_panel_height">200dp</dimen>
+    <dimen name="command_item_padding_horizontal">32dp</dimen>
+    <dimen name="command_item_padding_vertical">28dp</dimen>
+    <dimen name="command_icon_size">24dp</dimen>
+    <dimen name="command_icon_margin">12dp</dimen>
+</resources>

@@ -54,17 +54,18 @@ Voice Input → VoxNovaVoiceInteractionSession (Android STT)
 - Uses idempotency keys for message deduplication
 
 ### TTS Provider Priority
-1. **Cartesia AI** - Uses voice "Daniela MX" (requires API key)
-2. **ElevenLabs** - Fallback (requires API key)
-3. **Google TTS** - Default fallback (always available)
+1. **Cartesia AI** - Uses voice "Daniela MX" / `sonic-2` model (requires API key)
+2. **Google TTS** - Default fallback (always available)
+
+### Quick Commands (QuickCommand.java)
+Predefined command buttons shown in the UI overlay. Includes gateway built-in commands (`/status`, `/help`) and Clawdbot skill invocations (`/skill morning-briefing`).
 
 ## Configuration
 
 Runtime settings stored in SharedPreferences:
 - `gateway_url` - Clawdbot WebSocket URL (e.g., `ws://192.168.1.100:18789`)
 - `auth_token` - Clawdbot authentication token
-- `cartesia_api_key` - Optional Cartesia API key
-- `elevenlabs_api_key` - Optional ElevenLabs API key
+- `cartesia_api_key` - Optional Cartesia API key for TTS
 
 ## Language & Localization
 

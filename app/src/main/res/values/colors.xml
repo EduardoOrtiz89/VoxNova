@@ -7,8 +7,22 @@
     <color name="teal_700">#FF018786</color>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
+
+    <!-- Status colors -->
     <color name="listening_color">#FF4CAF50</color>
     <color name="processing_color">#FFFFC107</color>
     <color name="speaking_color">#FF2196F3</color>
+    <color name="commands_color">#FFFFC107</color>
+    <color name="reset_color">#FF2196F3</color>
+    <color name="success_color">#FF4CAF50</color>
     <color name="error_color">#FFF44336</color>
+
+    <!-- Panel colors -->
+    <color name="panel_background">#FFFFFFFF</color>
+    <color name="overlay_background">#80000000</color>
+    <color name="text_primary">#FF000000</color>
+    <color name="text_secondary">#FF666666</color>
+
+    <!-- Command icon colors -->
+    <color name="command_icon_color">#FF757575</color>
 </resources>
