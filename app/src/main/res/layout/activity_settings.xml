@@ -37,11 +37,17 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:hint="Auth Token" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-            app:endIconMode="password_toggle" android:layout_marginBottom="16dp">
+            app:endIconMode="password_toggle" android:layout_marginBottom="8dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editAuthToken" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:inputType="textPassword" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTestConnection" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Test Connection"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_marginBottom="16dp" />
 
         <!-- TTS Config -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -105,43 +111,11 @@
                 android:gravity="center" />
         </LinearLayout>
 
-        <!-- Buttons -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginBottom="16dp">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTestConnection" android:layout_width="0dp"
-                android:layout_height="wrap_content" android:layout_weight="1"
-                android:text="Test" style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_marginEnd="8dp" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSave" android:layout_width="0dp"
-                android:layout_height="wrap_content" android:layout_weight="1"
-                android:text="Guardar" />
-        </LinearLayout>
-
-        <!-- Debug Log -->
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Debug Log" android:textStyle="bold" android:textSize="16sp"
-            android:layout_marginBottom="8dp" />
-
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginBottom="4dp">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCopyLog" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:text="Copiar"
-                style="@style/Widget.Material3.Button.TextButton" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnClearLog" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:text="Limpiar"
-                style="@style/Widget.Material3.Button.TextButton" />
-        </LinearLayout>
-
-        <HorizontalScrollView android:layout_width="match_parent" android:layout_height="150dp"
-            android:background="#1a1a1a" android:padding="8dp">
-            <TextView android:id="@+id/txtDebugLog" android:layout_width="wrap_content"
-                android:layout_height="wrap_content" android:textSize="10sp"
-                android:textColor="#00ff00" android:fontFamily="monospace" />
-        </HorizontalScrollView>
+        <!-- Save Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Save"
+            android:layout_marginBottom="16dp" />
 
         <!-- Status -->
         <TextView android:id="@+id/txtStatus" android:layout_width="match_parent"
@@ -151,7 +125,7 @@
         <!-- Open Assistant Settings -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOpenAssistantSettings" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Abrir config de asistente"
+            android:layout_height="wrap_content" android:text="Open Assistant Settings"
             style="@style/Widget.Material3.Button.TonalButton" android:layout_marginTop="16dp" />
 
     </LinearLayout>

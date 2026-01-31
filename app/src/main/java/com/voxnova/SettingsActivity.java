@@ -1,16 +1,12 @@
 package com.voxnova;
 
 import android.Manifest;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -24,7 +20,7 @@ import android.widget.TextView;
 
 public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText editGatewayUrl, editAuthToken, editCartesiaKey, editElevenLabsKey;
-    private TextView txtStatus, txtDebugLog, txtSilenceValue;
+    private TextView txtStatus, txtSilenceValue;
     private Spinner spinnerLanguage;
     private Slider sliderSilenceTimeout;
     private PreferencesManager prefs;
@@ -42,7 +38,6 @@ public class SettingsActivity extends AppCompatActivity {
         loadSettings();
         checkPermissions();
         updateStatus();
-        setupDebugLogger();
     }
 
     private void initViews() {
@@ -51,7 +46,6 @@ public class SettingsActivity extends AppCompatActivity {
         editCartesiaKey = findViewById(R.id.editCartesiaKey);
         editElevenLabsKey = findViewById(R.id.editElevenLabsKey);
         txtStatus = findViewById(R.id.txtStatus);
-        txtDebugLog = findViewById(R.id.txtDebugLog);
         txtSilenceValue = findViewById(R.id.txtSilenceValue);
         spinnerLanguage = findViewById(R.id.spinnerLanguage);
         sliderSilenceTimeout = findViewById(R.id.sliderSilenceTimeout);
@@ -70,26 +64,6 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.btnSave).setOnClickListener(v -> saveSettings());
         findViewById(R.id.btnTestConnection).setOnClickListener(v -> testConnection());
         findViewById(R.id.btnOpenAssistantSettings).setOnClickListener(v -> openAssistantSettings());
-        findViewById(R.id.btnCopyLog).setOnClickListener(v -> copyLog());
-        findViewById(R.id.btnClearLog).setOnClickListener(v -> clearLog());
-    }
-    
-    private void setupDebugLogger() {
-        txtDebugLog.setText(DebugLogger.getLogsAsString());
-        DebugLogger.setListener(log -> runOnUiThread(() -> txtDebugLog.append(log + "\n")));
-        DebugLogger.log("SettingsActivity started");
-    }
-    
-    private void copyLog() {
-        ClipboardManager cb = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        cb.setPrimaryClip(ClipData.newPlainText("VoxNova Log", DebugLogger.getLogsAsString()));
-        Toast.makeText(this, "Copiado", Toast.LENGTH_SHORT).show();
-    }
-    
-    private void clearLog() {
-        DebugLogger.clear();
-        txtDebugLog.setText("");
-        DebugLogger.log("Log cleared");
     }
 
     private void loadSettings() {
@@ -150,11 +124,10 @@ public class SettingsActivity extends AppCompatActivity {
         String url = getText(editGatewayUrl);
         String token = getText(editAuthToken);
         if (url.isEmpty() || token.isEmpty()) {
-            Toast.makeText(this, "Llena URL y Token", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Fill URL and Token", Toast.LENGTH_SHORT).show();
             return;
         }
-        
-        DebugLogger.log("=== TEST CONNECTION START ===");
+
         MaterialButton btn = findViewById(R.id.btnTestConnection);
         btn.setEnabled(false);
         btn.setText("...");
@@ -162,16 +135,14 @@ public class SettingsActivity extends AppCompatActivity {
         new ClawdbotClient(url, token).sendMessage("ping", new ClawdbotClient.ResponseCallback() {
             @Override
             public void onSuccess(String response) {
-                DebugLogger.success("=== TEST SUCCESS ===");
                 btn.setEnabled(true);
-                btn.setText("Test");
-                Toast.makeText(SettingsActivity.this, "✓ Conectado!", Toast.LENGTH_SHORT).show();
+                btn.setText("Test Connection");
+                Toast.makeText(SettingsActivity.this, "Connected!", Toast.LENGTH_SHORT).show();
             }
             @Override
             public void onError(String error) {
-                DebugLogger.error("=== TEST FAILED: " + error + " ===");
                 btn.setEnabled(true);
-                btn.setText("Test");
+                btn.setText("Test Connection");
                 Toast.makeText(SettingsActivity.this, "Error: " + error, Toast.LENGTH_LONG).show();
             }
         });
@@ -207,5 +178,4 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     @Override protected void onResume() { super.onResume(); updateStatus(); }
-    @Override protected void onDestroy() { super.onDestroy(); DebugLogger.setListener(null); }
 }
