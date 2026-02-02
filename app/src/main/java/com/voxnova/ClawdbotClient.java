@@ -286,6 +286,7 @@ public class ClawdbotClient {
             JSONArray scopes = new JSONArray();
             scopes.put("operator.read");
             scopes.put("operator.write");
+            scopes.put("operator.admin");
             params.put("scopes", scopes);
             
             JSONObject auth = new JSONObject();
@@ -296,7 +297,7 @@ public class ClawdbotClient {
             // Payload format: v2|deviceId|clientId|clientMode|role|scopes|signedAtMs|token|nonce
             if (deviceIdentity != null && pendingNonce != null && !pendingNonce.isEmpty()) {
                 long signedAt = System.currentTimeMillis();
-                String scopesStr = "operator.read,operator.write";
+                String scopesStr = "operator.read,operator.write,operator.admin";
 
                 JSONObject device = new JSONObject();
                 device.put("id", deviceIdentity.getDeviceId());
