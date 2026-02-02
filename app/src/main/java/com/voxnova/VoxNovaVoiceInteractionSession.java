@@ -89,7 +89,7 @@ public class VoxNovaVoiceInteractionSession extends VoiceInteractionSession {
                 return;
             }
 
-            clawdbotClient = new ClawdbotClient(prefs.getGatewayUrl(), prefs.getAuthToken());
+            clawdbotClient = new ClawdbotClient(context, prefs.getGatewayUrl(), prefs.getAuthToken());
 
             if (!SpeechRecognizer.isRecognitionAvailable(context)) {
                 showMessage("Speech recognition not available");
@@ -231,7 +231,7 @@ public class VoxNovaVoiceInteractionSession extends VoiceInteractionSession {
         if (clawdbotClient != null) {
             clawdbotClient.disconnect();
         }
-        clawdbotClient = new ClawdbotClient(prefs.getGatewayUrl(), prefs.getAuthToken());
+        clawdbotClient = new ClawdbotClient(context, prefs.getGatewayUrl(), prefs.getAuthToken());
 
         clawdbotClient.sendMessage(command, new ClawdbotClient.ResponseCallback() {
             @Override
@@ -401,7 +401,7 @@ public class VoxNovaVoiceInteractionSession extends VoiceInteractionSession {
         if (clawdbotClient != null) {
             clawdbotClient.disconnect();
         }
-        clawdbotClient = new ClawdbotClient(prefs.getGatewayUrl(), prefs.getAuthToken());
+        clawdbotClient = new ClawdbotClient(context, prefs.getGatewayUrl(), prefs.getAuthToken());
 
         clawdbotClient.resetSession(new ClawdbotClient.ResponseCallback() {
             @Override

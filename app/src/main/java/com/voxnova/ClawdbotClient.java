@@ -1,5 +1,6 @@
 package com.voxnova;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -24,6 +25,7 @@ public class ClawdbotClient {
     private final String authToken;
     private final Handler mainHandler;
     private final String sessionKey;
+    private final DeviceIdentity deviceIdentity;
     private WebSocket webSocket;
     private ResponseCallback pendingCallback;
     private StringBuilder responseBuffer;
@@ -32,27 +34,38 @@ public class ClawdbotClient {
     private String pendingMessageToSend;
     private String pendingResetReqId;
     private boolean pendingResetAfterConnect = false;
+    
+    // Challenge handling
+    private String pendingNonce;
+    private long pendingNonceTs;
 
     public interface ResponseCallback {
         void onSuccess(String response);
         void onError(String error);
     }
 
-    public ClawdbotClient(String gatewayUrl, String authToken) {
+    public ClawdbotClient(Context context, String gatewayUrl, String authToken) {
         String wsUrl = gatewayUrl.replace("https://", "wss://").replace("http://", "ws://");
         this.gatewayUrl = wsUrl.endsWith("/") ? wsUrl.substring(0, wsUrl.length() - 1) : wsUrl;
         this.authToken = authToken;
         this.mainHandler = new Handler(Looper.getMainLooper());
         this.responseBuffer = new StringBuilder();
         this.sessionKey = "agent:main:voxnova:android";
+        this.deviceIdentity = new DeviceIdentity(context);
         
         DebugLogger.log("ClawdbotClient init, gateway=" + this.gatewayUrl);
+        DebugLogger.log("Device ID: " + deviceIdentity.getDeviceId().substring(0, 16) + "...");
         
         this.client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(0, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
+    }
+    
+    // Legacy constructor for compatibility
+    public ClawdbotClient(String gatewayUrl, String authToken) {
+        this(null, gatewayUrl, authToken);
     }
 
     public void sendMessage(String text, ResponseCallback callback) {
@@ -75,113 +88,41 @@ public class ClawdbotClient {
     
     private void connect() {
         DebugLogger.log("Connecting to " + gatewayUrl);
+        pendingNonce = null;
+        pendingNonceTs = 0;
         
         Request request = new Request.Builder().url(gatewayUrl).build();
         
         webSocket = client.newWebSocket(request, new WebSocketListener() {
             @Override
             public void onOpen(WebSocket ws, Response response) {
-                DebugLogger.success("WebSocket OPEN");
-                
-                try {
-                    JSONObject connectMsg = new JSONObject();
-                    connectMsg.put("type", "req");
-                    connectMsg.put("method", "connect");
-                    connectMsg.put("id", UUID.randomUUID().toString());
-                    
-                    JSONObject params = new JSONObject();
-                    params.put("minProtocol", PROTOCOL_VERSION);
-                    params.put("maxProtocol", PROTOCOL_VERSION);
-                    
-                    JSONObject clientInfo = new JSONObject();
-                    clientInfo.put("id", "clawdbot-android");
-                    clientInfo.put("version", "1.0.0");
-                    clientInfo.put("platform", "android");
-                    clientInfo.put("mode", "webchat");
-                    params.put("client", clientInfo);
-                    
-                    JSONObject auth = new JSONObject();
-                    auth.put("token", authToken);
-                    params.put("auth", auth);
-                    
-                    connectMsg.put("params", params);
-                    DebugLogger.log("Sending connect request");
-                    ws.send(connectMsg.toString());
-                    
-                } catch (JSONException e) {
-                    DebugLogger.error("Connect error: " + e.getMessage());
-                    notifyError("Connect failed: " + e.getMessage());
-                }
+                DebugLogger.success("WebSocket OPEN - waiting for challenge");
+                // Don't send connect yet, wait for challenge
             }
             
             @Override
             public void onMessage(WebSocket ws, String text) {
-                DebugLogger.log("onMessage: " + text.substring(0, Math.min(100, text.length())));
+                DebugLogger.log("onMessage: " + text.substring(0, Math.min(150, text.length())));
                 
                 try {
                     JSONObject msg = new JSONObject(text);
                     String type = msg.optString("type", "");
                     
-                    // Handle connect response (hello-ok)
-                    if (type.equals("res")) {
-                        JSONObject payload = msg.optJSONObject("payload");
-                        if (payload != null && "hello-ok".equals(payload.optString("type"))) {
-                            DebugLogger.success("Connected! hello-ok received");
-                            isConnected = true;
-                            
-                            // Check if we have a pending reset request
-                            if (pendingResetAfterConnect) {
-                                pendingResetAfterConnect = false;
-                                DebugLogger.log("Sending pending reset request after connect");
-                                sendResetRequest();
-                                return;
-                            }
-                            
-                            // Send pending message if any
-                            if (pendingMessageToSend != null) {
-                                String m = pendingMessageToSend;
-                                pendingMessageToSend = null;
-                                DebugLogger.log("Sending pending message: " + m);
-                                sendChatMessage(m);
-                            }
-                            return;
-                        }
-                        
-                        // Handle sessions.reset response
-                        if (pendingResetReqId != null) {
-                            String resId = msg.optString("id", "");
-                            if (resId.equals(pendingResetReqId)) {
-                                pendingResetReqId = null;
-                                if (msg.optBoolean("ok", false)) {
-                                    DebugLogger.success("Session reset OK - new session created");
-                                    notifySuccess("Conversación reiniciada");
-                                } else {
-                                    JSONObject error = msg.optJSONObject("error");
-                                    String errMsg = error != null ? error.optString("message", "Reset failed") : "Reset failed";
-                                    DebugLogger.error("Reset failed: " + errMsg);
-                                    notifyError(errMsg);
-                                }
-                                return;
-                            }
-                        }
-                        
-                        // Handle error responses
-                        if (!msg.optBoolean("ok", true)) {
-                            JSONObject error = msg.optJSONObject("error");
-                            String errMsg = error != null ? error.optString("message", "Error") : "Failed";
-                            DebugLogger.error("Error response: " + errMsg);
-                            notifyError(errMsg);
-                            return;
-                        }
-                    }
-                    
-                    // Handle events
+                    // Handle connect.challenge - must respond with signed connect
                     if (type.equals("event")) {
                         String event = msg.optString("event", "");
                         JSONObject payload = msg.optJSONObject("payload");
                         
+                        if (event.equals("connect.challenge") && payload != null) {
+                            pendingNonce = payload.optString("nonce", "");
+                            pendingNonceTs = payload.optLong("ts", System.currentTimeMillis());
+                            DebugLogger.log("Received challenge, nonce=" + pendingNonce.substring(0, Math.min(16, pendingNonce.length())) + "...");
+                            sendConnectRequest(ws);
+                            return;
+                        }
+                        
                         // Skip non-relevant events
-                        if (event.equals("connect.challenge") || event.equals("health") || event.equals("tick")) {
+                        if (event.equals("health") || event.equals("tick")) {
                             return;
                         }
                         
@@ -233,6 +174,69 @@ public class ClawdbotClient {
                                 }
                             }
                         }
+                        return;
+                    }
+                    
+                    // Handle connect response (hello-ok)
+                    if (type.equals("res")) {
+                        JSONObject payload = msg.optJSONObject("payload");
+                        if (payload != null && "hello-ok".equals(payload.optString("type"))) {
+                            DebugLogger.success("Connected! hello-ok received");
+                            isConnected = true;
+                            
+                            // Check for device token
+                            JSONObject auth = payload.optJSONObject("auth");
+                            if (auth != null) {
+                                String deviceToken = auth.optString("deviceToken", "");
+                                if (!deviceToken.isEmpty()) {
+                                    DebugLogger.success("Received device token (paired)");
+                                }
+                            }
+                            
+                            // Check if we have a pending reset request
+                            if (pendingResetAfterConnect) {
+                                pendingResetAfterConnect = false;
+                                DebugLogger.log("Sending pending reset request after connect");
+                                sendResetRequest();
+                                return;
+                            }
+                            
+                            // Send pending message if any
+                            if (pendingMessageToSend != null) {
+                                String m = pendingMessageToSend;
+                                pendingMessageToSend = null;
+                                DebugLogger.log("Sending pending message: " + m);
+                                sendChatMessage(m);
+                            }
+                            return;
+                        }
+                        
+                        // Handle sessions.reset response
+                        if (pendingResetReqId != null) {
+                            String resId = msg.optString("id", "");
+                            if (resId.equals(pendingResetReqId)) {
+                                pendingResetReqId = null;
+                                if (msg.optBoolean("ok", false)) {
+                                    DebugLogger.success("Session reset OK - new session created");
+                                    notifySuccess("Conversación reiniciada");
+                                } else {
+                                    JSONObject error = msg.optJSONObject("error");
+                                    String errMsg = error != null ? error.optString("message", "Reset failed") : "Reset failed";
+                                    DebugLogger.error("Reset failed: " + errMsg);
+                                    notifyError(errMsg);
+                                }
+                                return;
+                            }
+                        }
+                        
+                        // Handle error responses
+                        if (!msg.optBoolean("ok", true)) {
+                            JSONObject error = msg.optJSONObject("error");
+                            String errMsg = error != null ? error.optString("message", "Error") : "Failed";
+                            DebugLogger.error("Error response: " + errMsg);
+                            notifyError(errMsg);
+                            return;
+                        }
                     }
                     
                 } catch (JSONException e) {
@@ -257,6 +261,60 @@ public class ClawdbotClient {
                 pendingResetAfterConnect = false;
             }
         });
+    }
+    
+    private void sendConnectRequest(WebSocket ws) {
+        try {
+            JSONObject connectMsg = new JSONObject();
+            connectMsg.put("type", "req");
+            connectMsg.put("method", "connect");
+            connectMsg.put("id", UUID.randomUUID().toString());
+            
+            JSONObject params = new JSONObject();
+            params.put("minProtocol", PROTOCOL_VERSION);
+            params.put("maxProtocol", PROTOCOL_VERSION);
+            
+            JSONObject clientInfo = new JSONObject();
+            clientInfo.put("id", "voxnova-android");
+            clientInfo.put("version", "2.0.0");
+            clientInfo.put("platform", "android");
+            clientInfo.put("mode", "operator");
+            params.put("client", clientInfo);
+            
+            params.put("role", "operator");
+            
+            JSONArray scopes = new JSONArray();
+            scopes.put("operator.read");
+            scopes.put("operator.write");
+            params.put("scopes", scopes);
+            
+            JSONObject auth = new JSONObject();
+            auth.put("token", authToken);
+            params.put("auth", auth);
+            
+            // Device identity with signed challenge
+            if (deviceIdentity != null && pendingNonce != null && !pendingNonce.isEmpty()) {
+                JSONObject device = new JSONObject();
+                device.put("id", deviceIdentity.getDeviceId());
+                device.put("publicKey", deviceIdentity.getPublicKeyBase64());
+                device.put("signature", deviceIdentity.signNonce(pendingNonce));
+                device.put("signedAt", System.currentTimeMillis());
+                device.put("nonce", pendingNonce);
+                params.put("device", device);
+                DebugLogger.log("Added device identity with signed nonce");
+            }
+            
+            params.put("locale", "es-MX");
+            params.put("userAgent", "VoxNova/2.0.0 Android");
+            
+            connectMsg.put("params", params);
+            DebugLogger.log("Sending connect request with device identity");
+            ws.send(connectMsg.toString());
+            
+        } catch (JSONException e) {
+            DebugLogger.error("Connect error: " + e.getMessage());
+            notifyError("Connect failed: " + e.getMessage());
+        }
     }
     
     private void sendChatMessage(String text) {

@@ -178,7 +178,7 @@ public class SettingsActivity extends AppCompatActivity {
         btn.setEnabled(false);
         btn.setText("...");
 
-        new ClawdbotClient(url, token).sendMessage("ping", new ClawdbotClient.ResponseCallback() {
+        new ClawdbotClient(SettingsActivity.this, url, token).sendMessage("ping", new ClawdbotClient.ResponseCallback() {
             @Override
             public void onSuccess(String response) {
                 btn.setEnabled(true);
