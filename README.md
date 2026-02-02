@@ -13,7 +13,8 @@ A native Android voice assistant app that integrates with [OpenClaw](https://git
 
 - **Voice Interaction**: Natural voice input using Android's built-in speech recognition
 - **AI Integration**: Real-time communication with OpenClaw gateway via WebSocket
-- **Multi-provider TTS**: Fallback chain supporting Cartesia AI, ElevenLabs, and Google TTS
+- **Multi-provider TTS**: Choose between Cartesia AI, ElevenLabs, Google TTS, or automatic fallback
+- **Device Identity**: Ed25519 cryptographic identity for secure OpenClaw protocol v3 authentication
 - **Quick Commands**: Predefined command buttons for common actions
 - **System Integration**: Registers as Android's default digital assistant
 - **Configurable Language**: Support for multiple languages (Spanish, English, Portuguese, French, German, Italian)
@@ -74,7 +75,8 @@ Configure the following settings in the app:
 | Auth Token | OpenClaw authentication token |
 | Cartesia API Key | Optional API key for Cartesia TTS |
 | ElevenLabs API Key | Optional API key for ElevenLabs TTS |
-| Language | Speech recognition and TTS language (default: Spanish Mexico) |
+| TTS Provider | Select TTS engine: Auto, Cartesia, ElevenLabs, or Google |
+| Language | Speech recognition and TTS language (default: `es-MX`) |
 | Silence Timeout | Time to wait after speech before sending (1-10 seconds) |
 
 ## Architecture
@@ -93,17 +95,24 @@ Voice Input → VoxNovaVoiceInteractionSession (Android STT)
 |-----------|-------------|
 | `ClawdbotClient` | WebSocket client for OpenClaw gateway (protocol v3) |
 | `VoxNovaVoiceInteractionSession` | Main voice interaction logic with STT and UI |
-| `TTSManager` | Multi-provider TTS with automatic fallback |
+| `TTSManager` | Multi-provider TTS with selectable engine or automatic fallback |
+| `DeviceIdentity` | Ed25519 key management for OpenClaw protocol v3 authentication |
 | `SettingsActivity` | Configuration UI |
 | `PreferencesManager` | SharedPreferences wrapper |
 | `DebugLogger` | In-memory logging for debugging |
 | `QuickCommand` | Predefined command buttons |
 
-### TTS Provider Priority
+### TTS Providers
 
-1. **Cartesia AI** - Voice: "Daniela MX" / Model: `sonic-2` (requires API key)
-2. **ElevenLabs** - Voice: "Lily" / Model: `eleven_multilingual_v2` (requires API key)
-3. **Google TTS** - Default fallback (always available)
+You can select a specific TTS provider in settings, or use Auto mode for automatic fallback:
+
+| Provider | Voice | Model | Notes |
+|----------|-------|-------|-------|
+| Cartesia AI | Daniela MX | `sonic-2` | Requires API key |
+| ElevenLabs | Lily | `eleven_multilingual_v2` | Requires API key |
+| Google TTS | System default | - | Always available |
+
+**Auto mode fallback order**: Cartesia → ElevenLabs → Google TTS (uses first available with API key)
 
 ### Supported Languages
 
