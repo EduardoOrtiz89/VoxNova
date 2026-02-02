@@ -1,11 +1,11 @@
 # VoxNova
 
-A native Android voice assistant app that integrates with OpenClawd (formerly Moltbot, formerly Clawdbot) AI gateway. VoxNova provides hands-free voice interaction with AI through speech recognition and text-to-speech synthesis.
+A native Android voice assistant app that integrates with [OpenClaw](https://github.com/openclaw/openclaw) AI gateway. VoxNova provides hands-free voice interaction with AI through speech recognition and text-to-speech synthesis.
 
 ## Features
 
 - **Voice Interaction**: Natural voice input using Android's built-in speech recognition
-- **AI Integration**: Real-time communication with OpenClawd gateway via WebSocket
+- **AI Integration**: Real-time communication with OpenClaw gateway via WebSocket
 - **Multi-provider TTS**: Fallback chain supporting Cartesia AI, ElevenLabs, and Google TTS
 - **Quick Commands**: Predefined command buttons for common actions
 - **System Integration**: Registers as Android's default digital assistant
@@ -17,7 +17,7 @@ A native Android voice assistant app that integrates with OpenClawd (formerly Mo
 - Android 8.0 (API 26) or higher
 - Java 17
 - Android SDK 34
-- OpenClawd gateway instance
+- OpenClaw gateway instance
 
 ## Building
 
@@ -63,8 +63,8 @@ Configure the following settings in the app:
 
 | Setting | Description |
 |---------|-------------|
-| Gateway URL | OpenClawd WebSocket URL (e.g., `ws://192.168.1.100:18789`) |
-| Auth Token | OpenClawd authentication token |
+| Gateway URL | OpenClaw WebSocket URL (e.g., `ws://192.168.1.100:18789`) |
+| Auth Token | OpenClaw authentication token |
 | Cartesia API Key | Optional API key for Cartesia TTS |
 | ElevenLabs API Key | Optional API key for ElevenLabs TTS |
 | Language | Speech recognition and TTS language (default: Spanish Mexico) |
@@ -76,7 +76,7 @@ Configure the following settings in the app:
 
 ```
 Voice Input → VoxNovaVoiceInteractionSession (Android STT)
-    → OpenClawdClient (WebSocket) → OpenClawd Gateway
+    → ClawdbotClient (WebSocket) → OpenClaw Gateway
     → Response aggregation → TTSManager → Audio Output
 ```
 
@@ -84,7 +84,7 @@ Voice Input → VoxNovaVoiceInteractionSession (Android STT)
 
 | Component | Description |
 |-----------|-------------|
-| `OpenClawdClient` | WebSocket client for OpenClawd gateway (protocol v3) |
+| `ClawdbotClient` | WebSocket client for OpenClaw gateway (protocol v3) |
 | `VoxNovaVoiceInteractionSession` | Main voice interaction logic with STT and UI |
 | `TTSManager` | Multi-provider TTS with automatic fallback |
 | `SettingsActivity` | Configuration UI |
