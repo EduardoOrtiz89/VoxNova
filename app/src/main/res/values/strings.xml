@@ -46,4 +46,15 @@
     <string name="new_session">New Session</string>
     <string name="cancel">Cancel</string>
     <string name="quick_commands_title">⚡ Quick Commands</string>
+
+    <!-- Quick Commands Settings -->
+    <string name="section_quick_commands">Quick Commands</string>
+    <string name="add_command">Add Command</string>
+    <string name="edit_command">Edit Command</string>
+    <string name="command_label">Label</string>
+    <string name="command_text">Command</string>
+    <string name="no_commands">No commands configured</string>
+    <string name="delete">Delete</string>
+    <string name="command_label_hint">e.g., Status</string>
+    <string name="command_text_hint">e.g., /status</string>
 </resources>

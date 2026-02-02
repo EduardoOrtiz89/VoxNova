@@ -123,7 +123,15 @@ public class VoxNovaVoiceInteractionSession extends VoiceInteractionSession {
             if (btnNewSession != null) btnNewSession.setOnClickListener(v -> sendResetCommand());
 
             View btnQuickCommands = contentView.findViewById(R.id.btnQuickCommands);
-            if (btnQuickCommands != null) btnQuickCommands.setOnClickListener(v -> toggleCommandsPanel());
+            if (btnQuickCommands != null) {
+                QuickCommand[] commands = QuickCommand.getCommands(context);
+                if (commands.length == 0) {
+                    btnQuickCommands.setVisibility(View.GONE);
+                } else {
+                    btnQuickCommands.setVisibility(View.VISIBLE);
+                    btnQuickCommands.setOnClickListener(v -> toggleCommandsPanel());
+                }
+            }
 
             return contentView;
         } catch (Exception e) {
@@ -162,7 +170,7 @@ public class VoxNovaVoiceInteractionSession extends VoiceInteractionSession {
         if (commandsPanel != null && commandsScrollView != null) {
             commandsPanel.removeAllViews();
 
-            QuickCommand[] commands = QuickCommand.getCommands();
+            QuickCommand[] commands = QuickCommand.getCommands(context);
             DebugLogger.log("Adding " + commands.length + " commands");
 
             for (QuickCommand cmd : commands) {

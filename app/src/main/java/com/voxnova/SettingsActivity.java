@@ -1,10 +1,15 @@
 package com.voxnova;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,16 +19,21 @@ import androidx.core.content.ContextCompat;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SettingsActivity extends AppCompatActivity {
     private TextInputEditText editGatewayUrl, editAuthToken, editCartesiaKey, editElevenLabsKey;
-    private TextView txtStatus, txtSilenceValue, txtTtsProviderWarning;
+    private TextView txtStatus, txtSilenceValue, txtTtsProviderWarning, txtNoCommands;
     private Spinner spinnerLanguage, spinnerTtsProvider;
     private Slider sliderSilenceTimeout;
+    private LinearLayout commandsList;
     private PreferencesManager prefs;
+    private List<QuickCommand> commands = new ArrayList<>();
 
     private static final String[] LANGUAGE_CODES = {"es-MX", "es-ES", "en-US", "en-GB", "pt-BR", "fr-FR", "de-DE", "it-IT"};
     private static final String[] LANGUAGE_NAMES = {"Spanish (Mexico)", "Spanish (Spain)", "English (US)", "English (UK)", "Portuguese (Brazil)", "French", "German", "Italian"};
@@ -39,10 +49,11 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        
+
         prefs = new PreferencesManager(this);
         initViews();
         loadSettings();
+        loadCommands();
         checkPermissions();
         updateStatus();
     }
@@ -55,9 +66,11 @@ public class SettingsActivity extends AppCompatActivity {
         txtStatus = findViewById(R.id.txtStatus);
         txtSilenceValue = findViewById(R.id.txtSilenceValue);
         txtTtsProviderWarning = findViewById(R.id.txtTtsProviderWarning);
+        txtNoCommands = findViewById(R.id.txtNoCommands);
         spinnerLanguage = findViewById(R.id.spinnerLanguage);
         spinnerTtsProvider = findViewById(R.id.spinnerTtsProvider);
         sliderSilenceTimeout = findViewById(R.id.sliderSilenceTimeout);
+        commandsList = findViewById(R.id.commandsList);
 
         // Setup language spinner
         ArrayAdapter<String> langAdapter = new ArrayAdapter<>(this,
@@ -93,6 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.btnSave).setOnClickListener(v -> saveSettings());
         findViewById(R.id.btnTestConnection).setOnClickListener(v -> testConnection());
         findViewById(R.id.btnOpenAssistantSettings).setOnClickListener(v -> openAssistantSettings());
+        findViewById(R.id.btnAddCommand).setOnClickListener(v -> showAddCommandDialog());
     }
 
     private void loadSettings() {
@@ -128,6 +142,151 @@ public class SettingsActivity extends AppCompatActivity {
         updateTtsProviderWarning();
     }
 
+    private void loadCommands() {
+        QuickCommand[] cmds = QuickCommand.getCommands(this);
+        commands.clear();
+        for (QuickCommand cmd : cmds) {
+            commands.add(cmd);
+        }
+        refreshCommandsList();
+    }
+
+    private void saveCommands() {
+        QuickCommand[] cmds = commands.toArray(new QuickCommand[0]);
+        prefs.setQuickCommandsJson(QuickCommand.toJson(cmds));
+    }
+
+    private void refreshCommandsList() {
+        commandsList.removeAllViews();
+
+        if (commands.isEmpty()) {
+            txtNoCommands.setVisibility(View.VISIBLE);
+        } else {
+            txtNoCommands.setVisibility(View.GONE);
+
+            for (int i = 0; i < commands.size(); i++) {
+                final int index = i;
+                QuickCommand cmd = commands.get(i);
+
+                LinearLayout itemLayout = new LinearLayout(this);
+                itemLayout.setOrientation(LinearLayout.HORIZONTAL);
+                itemLayout.setPadding(0, dpToPx(8), 0, dpToPx(8));
+                itemLayout.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+                // Command info
+                LinearLayout infoLayout = new LinearLayout(this);
+                infoLayout.setOrientation(LinearLayout.VERTICAL);
+                infoLayout.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+
+                TextView labelView = new TextView(this);
+                labelView.setText(cmd.label);
+                labelView.setTextSize(16);
+                labelView.setTextColor(ContextCompat.getColor(this, android.R.color.black));
+
+                TextView commandView = new TextView(this);
+                commandView.setText(cmd.command);
+                commandView.setTextSize(12);
+                commandView.setTextColor(ContextCompat.getColor(this, android.R.color.darker_gray));
+
+                infoLayout.addView(labelView);
+                infoLayout.addView(commandView);
+
+                // Edit button
+                ImageButton btnEdit = new ImageButton(this);
+                btnEdit.setImageResource(android.R.drawable.ic_menu_edit);
+                btnEdit.setBackgroundResource(android.R.drawable.btn_default);
+                btnEdit.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
+                btnEdit.setOnClickListener(v -> showEditCommandDialog(index));
+
+                // Delete button
+                ImageButton btnDelete = new ImageButton(this);
+                btnDelete.setImageResource(android.R.drawable.ic_menu_delete);
+                btnDelete.setBackgroundResource(android.R.drawable.btn_default);
+                btnDelete.setPadding(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8));
+                btnDelete.setOnClickListener(v -> deleteCommand(index));
+
+                itemLayout.addView(infoLayout);
+                itemLayout.addView(btnEdit);
+                itemLayout.addView(btnDelete);
+
+                commandsList.addView(itemLayout);
+            }
+        }
+    }
+
+    private void showAddCommandDialog() {
+        showCommandDialog(-1, "", "");
+    }
+
+    private void showEditCommandDialog(int index) {
+        QuickCommand cmd = commands.get(index);
+        showCommandDialog(index, cmd.label, cmd.command);
+    }
+
+    private void showCommandDialog(int index, String currentLabel, String currentCommand) {
+        boolean isEdit = index >= 0;
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dpToPx(16), dpToPx(16), dpToPx(16), dpToPx(16));
+
+        TextInputLayout labelLayout = new TextInputLayout(this);
+        labelLayout.setHint(getString(R.string.command_label));
+        TextInputEditText labelEdit = new TextInputEditText(this);
+        labelEdit.setText(currentLabel);
+        labelLayout.addView(labelEdit);
+
+        TextInputLayout commandLayout = new TextInputLayout(this);
+        commandLayout.setHint(getString(R.string.command_text));
+        TextInputEditText commandEdit = new TextInputEditText(this);
+        commandEdit.setText(currentCommand);
+        commandLayout.addView(commandEdit);
+
+        layout.addView(labelLayout);
+        layout.addView(commandLayout);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(isEdit ? R.string.edit_command : R.string.add_command);
+        builder.setView(layout);
+        builder.setPositiveButton(R.string.save, (dialog, which) -> {
+            String label = labelEdit.getText() != null ? labelEdit.getText().toString().trim() : "";
+            String command = commandEdit.getText() != null ? commandEdit.getText().toString().trim() : "";
+
+            if (label.isEmpty() || command.isEmpty()) {
+                Toast.makeText(this, "Label and command required", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (isEdit) {
+                commands.set(index, new QuickCommand(label, command));
+            } else {
+                commands.add(new QuickCommand(label, command));
+            }
+            saveCommands();
+            refreshCommandsList();
+        });
+        builder.setNegativeButton(R.string.cancel, null);
+        builder.show();
+    }
+
+    private void deleteCommand(int index) {
+        new AlertDialog.Builder(this)
+            .setTitle(R.string.delete)
+            .setMessage(commands.get(index).label)
+            .setPositiveButton(R.string.delete, (dialog, which) -> {
+                commands.remove(index);
+                saveCommands();
+                refreshCommandsList();
+            })
+            .setNegativeButton(R.string.cancel, null)
+            .show();
+    }
+
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round(dp * density);
+    }
+
     private void saveSettings() {
         String url = getText(editGatewayUrl);
         String token = getText(editAuthToken);
@@ -161,7 +320,7 @@ public class SettingsActivity extends AppCompatActivity {
         Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
         updateStatus();
     }
-    
+
     private String getText(TextInputEditText edit) {
         return edit.getText() != null ? edit.getText().toString().trim() : "";
     }
@@ -264,6 +423,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         sb.append("Language: ").append(prefs.getLanguage()).append("\n");
         sb.append("Silence timeout: ").append(prefs.getSilenceTimeout() / 1000).append("s\n");
+        sb.append("Quick commands: ").append(commands.size()).append("\n");
         txtStatus.setText(sb.toString());
     }
 

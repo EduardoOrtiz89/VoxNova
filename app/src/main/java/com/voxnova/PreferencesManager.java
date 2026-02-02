@@ -12,6 +12,7 @@ public class PreferencesManager {
     private static final String KEY_LANGUAGE = "language";
     private static final String KEY_SILENCE_TIMEOUT = "silence_timeout";
     private static final String KEY_TTS_PROVIDER = "tts_provider";
+    private static final String KEY_QUICK_COMMANDS = "quick_commands";
 
     public static final String DEFAULT_LANGUAGE = "es-MX";
     public static final String TTS_PROVIDER_AUTO = "auto";
@@ -106,5 +107,13 @@ public class PreferencesManager {
 
     public void setTtsProvider(String provider) {
         prefs.edit().putString(KEY_TTS_PROVIDER, provider).apply();
+    }
+
+    public String getQuickCommandsJson() {
+        return prefs.getString(KEY_QUICK_COMMANDS, "[]");
+    }
+
+    public void setQuickCommandsJson(String json) {
+        prefs.edit().putString(KEY_QUICK_COMMANDS, json).apply();
     }
 }

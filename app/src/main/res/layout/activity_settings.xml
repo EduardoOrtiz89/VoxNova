@@ -131,6 +131,37 @@
                 android:gravity="center" />
         </LinearLayout>
 
+        <!-- Quick Commands Section -->
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/section_quick_commands" android:textStyle="bold" android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/commandsList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/txtNoCommands"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/no_commands"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:gravity="center"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddCommand"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_command"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_marginBottom="16dp" />
+
         <!-- Save Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave" android:layout_width="match_parent"

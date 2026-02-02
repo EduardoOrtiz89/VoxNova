@@ -1,5 +1,11 @@
 package com.voxnova;
 
+import android.content.Context;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class QuickCommand {
     public final int iconRes;
     public final String label;
@@ -11,19 +17,52 @@ public class QuickCommand {
         this.command = command;
     }
 
-    // Built-in commands + common skills
-    public static QuickCommand[] getCommands() {
-        return new QuickCommand[] {
-            // Built-in
-            new QuickCommand(R.drawable.ic_cmd_status, "Status", "/status"),
-            new QuickCommand(R.drawable.ic_cmd_help, "Help", "/help"),
+    public QuickCommand(String label, String command) {
+        this(R.drawable.ic_cmd_status, label, command);
+    }
 
-            // Skills
-            new QuickCommand(R.drawable.ic_cmd_morning, "Morning briefing", "/skill morning-briefing"),
-            new QuickCommand(R.drawable.ic_cmd_sleep, "How did I sleep?", "How did I sleep last night?"),
-            new QuickCommand(R.drawable.ic_cmd_food, "Calories today", "How many calories do I have today?"),
-            new QuickCommand(R.drawable.ic_cmd_fitness, "Weekly review", "/skill weekly-review"),
-            new QuickCommand(R.drawable.ic_cmd_coffee, "Log coffee", "Log a coffee"),
-        };
+    /**
+     * Load commands from user preferences
+     */
+    public static QuickCommand[] getCommands(Context context) {
+        PreferencesManager prefs = new PreferencesManager(context);
+        return fromJson(prefs.getQuickCommandsJson());
+    }
+
+    /**
+     * Parse JSON array into QuickCommand array
+     */
+    public static QuickCommand[] fromJson(String json) {
+        try {
+            JSONArray arr = new JSONArray(json);
+            QuickCommand[] commands = new QuickCommand[arr.length()];
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject obj = arr.getJSONObject(i);
+                String label = obj.getString("label");
+                String command = obj.getString("command");
+                commands[i] = new QuickCommand(label, command);
+            }
+            return commands;
+        } catch (JSONException e) {
+            return new QuickCommand[0];
+        }
+    }
+
+    /**
+     * Serialize QuickCommand array to JSON
+     */
+    public static String toJson(QuickCommand[] commands) {
+        try {
+            JSONArray arr = new JSONArray();
+            for (QuickCommand cmd : commands) {
+                JSONObject obj = new JSONObject();
+                obj.put("label", cmd.label);
+                obj.put("command", cmd.command);
+                arr.put(obj);
+            }
+            return arr.toString();
+        } catch (JSONException e) {
+            return "[]";
+        }
     }
 }
