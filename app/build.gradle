@@ -32,6 +32,12 @@ android {
     buildFeatures {
         viewBinding true
     }
+    
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/versions/9/OSGI-INF/MANIFEST.MF']
+        }
+    }
 }
 
 dependencies {
@@ -45,4 +51,7 @@ dependencies {
     
     // JSON parsing
     implementation 'org.json:json:20231013'
+    
+    // BouncyCastle for Ed25519 support (API < 33)
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.77'
 }

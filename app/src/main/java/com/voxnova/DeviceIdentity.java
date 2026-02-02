@@ -4,19 +4,19 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.KeyFactory;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator;
+import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters;
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.signers.Ed25519Signer;
+
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 
 /**
  * Manages device identity for OpenClaw protocol v3.
- * Generates and stores a stable device ID and keypair for signing challenges.
+ * Uses Ed25519 keys via BouncyCastle for signing challenges.
  */
 public class DeviceIdentity {
     private static final String PREFS_NAME = "voxnova_device";
@@ -26,8 +26,8 @@ public class DeviceIdentity {
     
     private final SharedPreferences prefs;
     private String deviceId;
-    private PublicKey publicKey;
-    private PrivateKey privateKey;
+    private byte[] publicKeyRaw;  // 32 bytes raw Ed25519 public key
+    private byte[] privateKeyRaw; // 32 bytes raw Ed25519 private key seed
     
     public DeviceIdentity(Context context) {
         this.prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
@@ -42,16 +42,14 @@ public class DeviceIdentity {
         if (storedDeviceId != null && storedPublicKey != null && storedPrivateKey != null) {
             try {
                 this.deviceId = storedDeviceId;
+                this.publicKeyRaw = Base64.decode(storedPublicKey, Base64.NO_WRAP);
+                this.privateKeyRaw = Base64.decode(storedPrivateKey, Base64.NO_WRAP);
                 
-                byte[] publicBytes = Base64.decode(storedPublicKey, Base64.NO_WRAP);
-                byte[] privateBytes = Base64.decode(storedPrivateKey, Base64.NO_WRAP);
-                
-                KeyFactory keyFactory = KeyFactory.getInstance("EC");
-                this.publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(publicBytes));
-                this.privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateBytes));
-                
-                DebugLogger.log("DeviceIdentity loaded: " + deviceId.substring(0, 16) + "...");
-                return;
+                // Verify the stored keys are valid (32 bytes each)
+                if (publicKeyRaw.length == 32 && privateKeyRaw.length == 32) {
+                    DebugLogger.log("DeviceIdentity loaded (Ed25519): " + deviceId.substring(0, 16) + "...");
+                    return;
+                }
             } catch (Exception e) {
                 DebugLogger.error("Failed to load identity, regenerating: " + e.getMessage());
             }
@@ -62,17 +60,20 @@ public class DeviceIdentity {
     
     private void generateNewIdentity() {
         try {
-            // Generate EC keypair (P-256)
-            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC");
-            keyGen.initialize(256);
-            KeyPair keyPair = keyGen.generateKeyPair();
+            // Generate Ed25519 keypair using BouncyCastle
+            Ed25519KeyPairGenerator keyGen = new Ed25519KeyPairGenerator();
+            keyGen.init(new Ed25519KeyGenerationParameters(new SecureRandom()));
+            AsymmetricCipherKeyPair keyPair = keyGen.generateKeyPair();
             
-            this.publicKey = keyPair.getPublic();
-            this.privateKey = keyPair.getPrivate();
+            Ed25519PublicKeyParameters publicKey = (Ed25519PublicKeyParameters) keyPair.getPublic();
+            Ed25519PrivateKeyParameters privateKey = (Ed25519PrivateKeyParameters) keyPair.getPrivate();
             
-            // Device ID is SHA-256 hash of public key (hex encoded)
+            this.publicKeyRaw = publicKey.getEncoded();  // 32 bytes
+            this.privateKeyRaw = privateKey.getEncoded(); // 32 bytes (seed)
+            
+            // Device ID is SHA-256 hash of raw public key (hex encoded)
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(publicKey.getEncoded());
+            byte[] hash = digest.digest(publicKeyRaw);
             StringBuilder hexString = new StringBuilder();
             for (byte b : hash) {
                 hexString.append(String.format("%02x", b));
@@ -80,8 +81,8 @@ public class DeviceIdentity {
             this.deviceId = hexString.toString();
             
             // Store in preferences
-            String publicKeyB64 = Base64.encodeToString(publicKey.getEncoded(), Base64.NO_WRAP);
-            String privateKeyB64 = Base64.encodeToString(privateKey.getEncoded(), Base64.NO_WRAP);
+            String publicKeyB64 = Base64.encodeToString(publicKeyRaw, Base64.NO_WRAP);
+            String privateKeyB64 = Base64.encodeToString(privateKeyRaw, Base64.NO_WRAP);
             
             prefs.edit()
                 .putString(KEY_DEVICE_ID, deviceId)
@@ -89,7 +90,7 @@ public class DeviceIdentity {
                 .putString(KEY_PRIVATE_KEY, privateKeyB64)
                 .apply();
             
-            DebugLogger.success("DeviceIdentity generated: " + deviceId.substring(0, 16) + "...");
+            DebugLogger.success("DeviceIdentity generated (Ed25519): " + deviceId.substring(0, 16) + "...");
             
         } catch (Exception e) {
             DebugLogger.error("Failed to generate identity: " + e.getMessage());
@@ -101,24 +102,45 @@ public class DeviceIdentity {
         return deviceId;
     }
     
-    public String getPublicKeyBase64() {
-        return Base64.encodeToString(publicKey.getEncoded(), Base64.NO_WRAP);
+    /**
+     * Returns the raw 32-byte public key encoded in base64url format.
+     * This is what OpenClaw expects.
+     */
+    public String getPublicKeyBase64Url() {
+        return base64UrlEncode(publicKeyRaw);
     }
     
     /**
-     * Sign a nonce for the connect.challenge.
-     * Returns base64-encoded signature.
+     * Sign a nonce for the connect.challenge using Ed25519.
+     * Returns base64url-encoded signature.
      */
     public String signNonce(String nonce) {
         try {
-            Signature signature = Signature.getInstance("SHA256withECDSA");
-            signature.initSign(privateKey);
-            signature.update(nonce.getBytes("UTF-8"));
-            byte[] signatureBytes = signature.sign();
-            return Base64.encodeToString(signatureBytes, Base64.NO_WRAP);
+            // Reconstruct private key from stored seed
+            Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(privateKeyRaw, 0);
+            
+            // Sign the nonce
+            Ed25519Signer signer = new Ed25519Signer();
+            signer.init(true, privateKey);
+            byte[] nonceBytes = nonce.getBytes("UTF-8");
+            signer.update(nonceBytes, 0, nonceBytes.length);
+            byte[] signature = signer.generateSignature();
+            
+            return base64UrlEncode(signature);
         } catch (Exception e) {
             DebugLogger.error("Failed to sign nonce: " + e.getMessage());
             throw new RuntimeException("Failed to sign nonce", e);
         }
+    }
+    
+    /**
+     * Encode bytes to base64url (no padding, URL-safe).
+     */
+    private static String base64UrlEncode(byte[] data) {
+        String base64 = Base64.encodeToString(data, Base64.NO_WRAP);
+        return base64
+            .replace('+', '-')
+            .replace('/', '_')
+            .replaceAll("=+$", "");
     }
 }

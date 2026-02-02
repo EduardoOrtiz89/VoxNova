@@ -296,7 +296,7 @@ public class ClawdbotClient {
             if (deviceIdentity != null && pendingNonce != null && !pendingNonce.isEmpty()) {
                 JSONObject device = new JSONObject();
                 device.put("id", deviceIdentity.getDeviceId());
-                device.put("publicKey", deviceIdentity.getPublicKeyBase64());
+                device.put("publicKey", deviceIdentity.getPublicKeyBase64Url());
                 device.put("signature", deviceIdentity.signNonce(pendingNonce));
                 device.put("signedAt", System.currentTimeMillis());
                 device.put("nonce", pendingNonce);
