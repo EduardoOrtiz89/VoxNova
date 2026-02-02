@@ -30,7 +30,7 @@
             android:id="@+id/txtStatusLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Escuchando..."
+            android:text="@string/listening"
             android:textSize="@dimen/status_text_size"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
@@ -87,7 +87,7 @@
                 android:src="@drawable/ic_btn_commands"
                 android:background="@drawable/bg_button_rounded"
                 android:padding="12dp"
-                android:contentDescription="Commands"
+                android:contentDescription="@string/commands"
                 app:tint="@color/text_primary" />
 
             <!-- New Session Button -->
@@ -99,7 +99,7 @@
                 android:src="@drawable/ic_btn_refresh"
                 android:background="@drawable/bg_button_rounded"
                 android:padding="12dp"
-                android:contentDescription="New Session"
+                android:contentDescription="@string/new_session"
                 app:tint="@color/text_primary" />
 
             <!-- Cancel Button -->
@@ -110,7 +110,7 @@
                 android:src="@drawable/ic_btn_close"
                 android:background="@drawable/bg_button_rounded"
                 android:padding="12dp"
-                android:contentDescription="Cancel"
+                android:contentDescription="@string/cancel"
                 app:tint="@color/text_primary" />
 
         </LinearLayout>

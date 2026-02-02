@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="VoxNova"
+            android:text="@string/app_name"
             android:textSize="28sp"
             android:textStyle="bold"
             android:layout_gravity="center"
@@ -22,12 +22,12 @@
 
         <!-- Gateway Config -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Clawdbot Gateway" android:textStyle="bold" android:textSize="16sp"
+            android:text="@string/section_clawdbot_gateway" android:textStyle="bold" android:textSize="16sp"
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="Gateway URL" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:hint="@string/gateway_url" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_marginBottom="8dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editGatewayUrl" android:layout_width="match_parent"
@@ -36,7 +36,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="Auth Token" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:hint="@string/auth_token" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             app:endIconMode="password_toggle" android:layout_marginBottom="8dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editAuthToken" android:layout_width="match_parent"
@@ -45,13 +45,13 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTestConnection" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Test Connection"
+            android:layout_height="wrap_content" android:text="@string/test_connection"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_marginBottom="16dp" />
 
         <!-- TTS Config -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Text-to-Speech" android:textStyle="bold"
+            android:text="@string/section_text_to_speech" android:textStyle="bold"
             android:textSize="16sp" android:layout_marginBottom="8dp" />
 
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -76,7 +76,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="Cartesia API Key (optional)" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:hint="@string/cartesia_api_key_hint" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             app:endIconMode="password_toggle" android:layout_marginBottom="8dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editCartesiaKey" android:layout_width="match_parent"
@@ -85,7 +85,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="ElevenLabs API Key (optional)" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:hint="@string/elevenlabs_api_key_hint" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             app:endIconMode="password_toggle" android:layout_marginBottom="16dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editElevenLabsKey" android:layout_width="match_parent"
@@ -94,11 +94,11 @@
 
         <!-- Voice Recognition Settings -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Voice Recognition" android:textStyle="bold" android:textSize="16sp"
+            android:text="@string/section_voice_recognition" android:textStyle="bold" android:textSize="16sp"
             android:layout_marginBottom="8dp" />
 
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Language" android:textSize="14sp"
+            android:text="@string/language" android:textSize="14sp"
             android:layout_marginBottom="4dp" />
 
         <Spinner
@@ -109,7 +109,7 @@
             android:layout_marginBottom="16dp" />
 
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Silence timeout" android:textSize="14sp" />
+            android:text="@string/silence_timeout" android:textSize="14sp" />
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="horizontal" android:gravity="center_vertical"
@@ -134,7 +134,7 @@
         <!-- Save Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Save"
+            android:layout_height="wrap_content" android:text="@string/save"
             android:layout_marginBottom="16dp" />
 
         <!-- Status -->
@@ -145,7 +145,7 @@
         <!-- Open Assistant Settings -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOpenAssistantSettings" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:text="Open Assistant Settings"
+            android:layout_height="wrap_content" android:text="@string/open_assistant_settings"
             style="@style/Widget.Material3.Button.TonalButton" android:layout_marginTop="16dp" />
 
     </LinearLayout>

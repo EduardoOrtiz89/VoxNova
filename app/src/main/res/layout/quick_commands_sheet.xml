@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="⚡ Comandos Rápidos"
+        android:text="@string/quick_commands_title"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#000000"

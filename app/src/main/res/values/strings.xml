@@ -4,7 +4,7 @@
     <string name="settings_title">VoxNova Settings</string>
     <string name="gateway_url">Gateway URL</string>
     <string name="gateway_url_hint">http://192.168.1.100:18789</string>
-    <string name="auth_token">Authentication Token</string>
+    <string name="auth_token">Auth Token</string>
     <string name="auth_token_hint">Enter your Clawdbot token</string>
     <string name="save_settings">Save Settings</string>
     <string name="settings_saved">Settings saved successfully</string>
@@ -29,4 +29,21 @@
     <string name="tts_provider_google">Google TTS</string>
     <string name="tts_provider_warning_cartesia">Cartesia API key required</string>
     <string name="tts_provider_warning_elevenlabs">ElevenLabs API key required</string>
+
+    <!-- Settings screen sections -->
+    <string name="section_clawdbot_gateway">Clawdbot Gateway</string>
+    <string name="section_text_to_speech">Text-to-Speech</string>
+    <string name="section_voice_recognition">Voice Recognition</string>
+    <string name="cartesia_api_key_hint">Cartesia API Key (optional)</string>
+    <string name="elevenlabs_api_key_hint">ElevenLabs API Key (optional)</string>
+    <string name="language">Language</string>
+    <string name="silence_timeout">Silence timeout</string>
+    <string name="save">Save</string>
+    <string name="open_assistant_settings">Open Assistant Settings</string>
+
+    <!-- Voice interaction UI -->
+    <string name="commands">Commands</string>
+    <string name="new_session">New Session</string>
+    <string name="cancel">Cancel</string>
+    <string name="quick_commands_title">⚡ Quick Commands</string>
 </resources>

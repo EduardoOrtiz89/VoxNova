@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VoxNova</string>
+    <string name="settings_title">Configuración de VoxNova</string>
+    <string name="gateway_url">URL del Gateway</string>
+    <string name="gateway_url_hint">http://192.168.1.100:18789</string>
+    <string name="auth_token">Token de Autenticación</string>
+    <string name="auth_token_hint">Ingresa tu token de Clawdbot</string>
+    <string name="save_settings">Guardar Configuración</string>
+    <string name="settings_saved">Configuración guardada exitosamente</string>
+    <string name="listening">Escuchando...</string>
+    <string name="processing">Procesando...</string>
+    <string name="speaking">Hablando...</string>
+    <string name="error_no_config">Por favor configura la URL del Gateway y el Token en ajustes</string>
+    <string name="error_network">Error de red. Verifica tu conexión.</string>
+    <string name="error_speech">Error de reconocimiento de voz</string>
+    <string name="tap_to_speak">Toca el micrófono para hablar</string>
+    <string name="test_connection">Probar Conexión</string>
+    <string name="connection_success">¡Conexión exitosa!</string>
+    <string name="connection_failed">Conexión fallida</string>
+    <string name="how_to_enable">Cómo Habilitar VoxNova como Asistente</string>
+    <string name="enable_instructions">1. Ve a Ajustes → Apps → Apps predeterminadas\n2. Selecciona \"App de asistente digital\"\n3. Elige VoxNova\n4. Otorga los permisos cuando se soliciten</string>
+
+    <!-- TTS Provider -->
+    <string name="tts_provider">Proveedor de TTS</string>
+    <string name="tts_provider_auto">Automático (Cartesia → ElevenLabs → Google)</string>
+    <string name="tts_provider_cartesia">Cartesia</string>
+    <string name="tts_provider_elevenlabs">ElevenLabs</string>
+    <string name="tts_provider_google">Google TTS</string>
+    <string name="tts_provider_warning_cartesia">Se requiere clave API de Cartesia</string>
+    <string name="tts_provider_warning_elevenlabs">Se requiere clave API de ElevenLabs</string>
+
+    <!-- Settings screen sections -->
+    <string name="section_clawdbot_gateway">Gateway de Clawdbot</string>
+    <string name="section_text_to_speech">Texto a Voz</string>
+    <string name="section_voice_recognition">Reconocimiento de Voz</string>
+    <string name="cartesia_api_key_hint">Clave API de Cartesia (opcional)</string>
+    <string name="elevenlabs_api_key_hint">Clave API de ElevenLabs (opcional)</string>
+    <string name="language">Idioma</string>
+    <string name="silence_timeout">Tiempo de espera de silencio</string>
+    <string name="save">Guardar</string>
+    <string name="open_assistant_settings">Abrir Ajustes de Asistente</string>
+
+    <!-- Voice interaction UI -->
+    <string name="commands">Comandos</string>
+    <string name="new_session">Nueva Sesión</string>
+    <string name="cancel">Cancelar</string>
+    <string name="quick_commands_title">⚡ Comandos Rápidos</string>
+</resources>
