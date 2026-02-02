@@ -111,25 +111,33 @@ public class DeviceIdentity {
     }
     
     /**
-     * Sign a nonce for the connect.challenge using Ed25519.
-     * Returns base64url-encoded signature.
+     * Sign the full connect payload for OpenClaw protocol v3.
+     * Payload format: v2|deviceId|clientId|clientMode|role|scopes|signedAtMs|token|nonce
+     * Returns base64url-encoded Ed25519 signature.
      */
-    public String signNonce(String nonce) {
+    public String signPayload(String clientId, String clientMode, String role,
+                              String scopes, long signedAtMs, String token, String nonce) {
         try {
+            // Build the payload to sign
+            String payload = String.format("v2|%s|%s|%s|%s|%s|%d|%s|%s",
+                deviceId, clientId, clientMode, role, scopes, signedAtMs, token, nonce);
+
+            DebugLogger.log("Signing payload: " + payload.substring(0, Math.min(80, payload.length())) + "...");
+
             // Reconstruct private key from stored seed
             Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(privateKeyRaw, 0);
-            
-            // Sign the nonce
+
+            // Sign the payload
             Ed25519Signer signer = new Ed25519Signer();
             signer.init(true, privateKey);
-            byte[] nonceBytes = nonce.getBytes("UTF-8");
-            signer.update(nonceBytes, 0, nonceBytes.length);
+            byte[] payloadBytes = payload.getBytes("UTF-8");
+            signer.update(payloadBytes, 0, payloadBytes.length);
             byte[] signature = signer.generateSignature();
-            
+
             return base64UrlEncode(signature);
         } catch (Exception e) {
-            DebugLogger.error("Failed to sign nonce: " + e.getMessage());
-            throw new RuntimeException("Failed to sign nonce", e);
+            DebugLogger.error("Failed to sign payload: " + e.getMessage());
+            throw new RuntimeException("Failed to sign payload", e);
         }
     }
     

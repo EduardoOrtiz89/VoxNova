@@ -275,14 +275,14 @@ public class ClawdbotClient {
             params.put("maxProtocol", PROTOCOL_VERSION);
             
             JSONObject clientInfo = new JSONObject();
-            clientInfo.put("id", "voxnova-android");
+            clientInfo.put("id", "cli");
             clientInfo.put("version", "2.0.0");
             clientInfo.put("platform", "android");
-            clientInfo.put("mode", "operator");
+            clientInfo.put("mode", "cli");
             params.put("client", clientInfo);
-            
+
             params.put("role", "operator");
-            
+
             JSONArray scopes = new JSONArray();
             scopes.put("operator.read");
             scopes.put("operator.write");
@@ -293,15 +293,27 @@ public class ClawdbotClient {
             params.put("auth", auth);
             
             // Device identity with signed challenge
+            // Payload format: v2|deviceId|clientId|clientMode|role|scopes|signedAtMs|token|nonce
             if (deviceIdentity != null && pendingNonce != null && !pendingNonce.isEmpty()) {
+                long signedAt = System.currentTimeMillis();
+                String scopesStr = "operator.read,operator.write";
+
                 JSONObject device = new JSONObject();
                 device.put("id", deviceIdentity.getDeviceId());
                 device.put("publicKey", deviceIdentity.getPublicKeyBase64Url());
-                device.put("signature", deviceIdentity.signNonce(pendingNonce));
-                device.put("signedAt", System.currentTimeMillis());
+                device.put("signature", deviceIdentity.signPayload(
+                    "cli",               // clientId
+                    "cli",               // clientMode
+                    "operator",          // role
+                    scopesStr,           // scopes
+                    signedAt,            // signedAtMs
+                    authToken,           // token
+                    pendingNonce         // nonce
+                ));
+                device.put("signedAt", signedAt);
                 device.put("nonce", pendingNonce);
                 params.put("device", device);
-                DebugLogger.log("Added device identity with signed nonce");
+                DebugLogger.log("Added device identity with signed payload (v2)");
             }
             
             params.put("locale", "es-MX");
