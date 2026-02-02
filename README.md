@@ -2,6 +2,13 @@
 
 A native Android voice assistant app that integrates with [OpenClaw](https://github.com/openclaw/openclaw) AI gateway. VoxNova provides hands-free voice interaction with AI through speech recognition and text-to-speech synthesis.
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshot_assistant.jpg" width="300" alt="Voice Assistant"/>
+  <img src="screenshot_settings.jpg" width="300" alt="Settings"/>
+</p>
+
 ## Features
 
 - **Voice Interaction**: Natural voice input using Android's built-in speech recognition
