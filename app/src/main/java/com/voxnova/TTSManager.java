@@ -90,36 +90,76 @@ public class TTSManager {
         String cleanText = stripEmojis(text);
         DebugLogger.log("TTS speak: " + cleanText.substring(0, Math.min(40, cleanText.length())) + "...");
 
+        String provider = prefs.getTtsProvider();
         String cartesiaKey = prefs.getCartesiaApiKey();
         String elevenLabsKey = prefs.getElevenLabsApiKey();
 
-        if (cartesiaKey != null && !cartesiaKey.isEmpty()) {
-            DebugLogger.log("Trying Cartesia...");
-            speakWithCartesia(cleanText, cartesiaKey, callback);
-        } else if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
-            DebugLogger.log("Trying ElevenLabs...");
-            speakWithElevenLabs(cleanText, elevenLabsKey, callback);
-        } else {
-            DebugLogger.log("Using Google TTS (no API keys)");
-            speakWithGoogle(cleanText, callback);
+        DebugLogger.log("TTS provider setting: " + provider);
+
+        switch (provider) {
+            case "cartesia":
+                if (cartesiaKey != null && !cartesiaKey.isEmpty()) {
+                    DebugLogger.log("Using Cartesia (selected)");
+                    speakWithCartesiaOnly(cleanText, cartesiaKey, callback);
+                } else {
+                    DebugLogger.log("Cartesia selected but no API key, falling back to Google");
+                    speakWithGoogle(cleanText, callback);
+                }
+                break;
+
+            case "elevenlabs":
+                if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
+                    DebugLogger.log("Using ElevenLabs (selected)");
+                    speakWithElevenLabsOnly(cleanText, elevenLabsKey, callback);
+                } else {
+                    DebugLogger.log("ElevenLabs selected but no API key, falling back to Google");
+                    speakWithGoogle(cleanText, callback);
+                }
+                break;
+
+            case "google":
+                DebugLogger.log("Using Google TTS (selected)");
+                speakWithGoogle(cleanText, callback);
+                break;
+
+            default: // auto - use fallback chain
+                if (cartesiaKey != null && !cartesiaKey.isEmpty()) {
+                    DebugLogger.log("Auto: Trying Cartesia...");
+                    speakWithCartesia(cleanText, cartesiaKey, callback);
+                } else if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
+                    DebugLogger.log("Auto: Trying ElevenLabs...");
+                    speakWithElevenLabs(cleanText, elevenLabsKey, callback);
+                } else {
+                    DebugLogger.log("Auto: Using Google TTS (no API keys)");
+                    speakWithGoogle(cleanText, callback);
+                }
+                break;
         }
     }
 
+    private void speakWithCartesiaOnly(String text, String apiKey, TTSCallback callback) {
+        executeCartesiaRequest(text, apiKey, callback, false);
+    }
+
     private void speakWithCartesia(String text, String apiKey, TTSCallback callback) {
+        executeCartesiaRequest(text, apiKey, callback, true);
+    }
+
+    private void executeCartesiaRequest(String text, String apiKey, TTSCallback callback, boolean allowFallback) {
         new Thread(() -> {
             try {
                 DebugLogger.log("Cartesia: building request...");
-                
+
                 JSONObject body = new JSONObject();
                 body.put("model_id", "sonic-2");
                 body.put("transcript", text);
                 body.put("language", prefs.getTtsLanguageCode());
-                
+
                 JSONObject voice = new JSONObject();
                 voice.put("mode", "id");
                 voice.put("id", CARTESIA_VOICE_ID);
                 body.put("voice", voice);
-                
+
                 JSONObject format = new JSONObject();
                 format.put("container", "mp3");
                 format.put("bit_rate", 128000);
@@ -127,7 +167,7 @@ public class TTSManager {
                 body.put("output_format", format);
 
                 DebugLogger.log("Cartesia: sending request...");
-                
+
                 Request request = new Request.Builder()
                         .url(CARTESIA_URL)
                         .addHeader("X-API-Key", apiKey)
@@ -137,20 +177,23 @@ public class TTSManager {
                         .build();
 
                 Response response = httpClient.newCall(request).execute();
-                
+
                 DebugLogger.log("Cartesia response: " + response.code());
-                
+
                 if (response.isSuccessful() && response.body() != null) {
                     DebugLogger.log("Cartesia: got audio, playing...");
                     playAudioStream(response.body().byteStream(), callback);
                 } else {
                     String errorBody = response.body() != null ? response.body().string() : "no body";
                     DebugLogger.error("Cartesia failed " + response.code() + ": " + errorBody.substring(0, Math.min(100, errorBody.length())));
-                    // Fallback to ElevenLabs, then Google
                     mainHandler.post(() -> {
-                        String elevenLabsKey = prefs.getElevenLabsApiKey();
-                        if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
-                            speakWithElevenLabs(text, elevenLabsKey, callback);
+                        if (allowFallback) {
+                            String elevenLabsKey = prefs.getElevenLabsApiKey();
+                            if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
+                                speakWithElevenLabs(text, elevenLabsKey, callback);
+                            } else {
+                                speakWithGoogle(text, callback);
+                            }
                         } else {
                             speakWithGoogle(text, callback);
                         }
@@ -158,11 +201,14 @@ public class TTSManager {
                 }
             } catch (Exception e) {
                 DebugLogger.error("Cartesia exception: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-                // Fallback to ElevenLabs, then Google
                 mainHandler.post(() -> {
-                    String elevenLabsKey = prefs.getElevenLabsApiKey();
-                    if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
-                        speakWithElevenLabs(text, elevenLabsKey, callback);
+                    if (allowFallback) {
+                        String elevenLabsKey = prefs.getElevenLabsApiKey();
+                        if (elevenLabsKey != null && !elevenLabsKey.isEmpty()) {
+                            speakWithElevenLabs(text, elevenLabsKey, callback);
+                        } else {
+                            speakWithGoogle(text, callback);
+                        }
                     } else {
                         speakWithGoogle(text, callback);
                     }
@@ -171,7 +217,15 @@ public class TTSManager {
         }).start();
     }
 
+    private void speakWithElevenLabsOnly(String text, String apiKey, TTSCallback callback) {
+        executeElevenLabsRequest(text, apiKey, callback);
+    }
+
     private void speakWithElevenLabs(String text, String apiKey, TTSCallback callback) {
+        executeElevenLabsRequest(text, apiKey, callback);
+    }
+
+    private void executeElevenLabsRequest(String text, String apiKey, TTSCallback callback) {
         new Thread(() -> {
             try {
                 DebugLogger.log("ElevenLabs: building request...");

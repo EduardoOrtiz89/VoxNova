@@ -20,4 +20,13 @@
     <string name="connection_failed">Connection failed</string>
     <string name="how_to_enable">How to Enable VoxNova as Assistant</string>
     <string name="enable_instructions">1. Go to Settings → Apps → Default apps\n2. Select \"Digital assistant app\"\n3. Choose VoxNova\n4. Grant permissions when prompted</string>
+
+    <!-- TTS Provider -->
+    <string name="tts_provider">TTS Provider</string>
+    <string name="tts_provider_auto">Auto (Cartesia → ElevenLabs → Google)</string>
+    <string name="tts_provider_cartesia">Cartesia</string>
+    <string name="tts_provider_elevenlabs">ElevenLabs</string>
+    <string name="tts_provider_google">Google TTS</string>
+    <string name="tts_provider_warning_cartesia">Cartesia API key required</string>
+    <string name="tts_provider_warning_elevenlabs">ElevenLabs API key required</string>
 </resources>

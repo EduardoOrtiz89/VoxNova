@@ -51,12 +51,32 @@
 
         <!-- TTS Config -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="TTS (Cartesia → ElevenLabs → Google)" android:textStyle="bold" 
+            android:text="Text-to-Speech" android:textStyle="bold"
             android:textSize="16sp" android:layout_marginBottom="8dp" />
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@string/tts_provider" android:textSize="14sp"
+            android:layout_marginBottom="4dp" />
+
+        <Spinner
+            android:id="@+id/spinnerTtsProvider"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@android:drawable/btn_dropdown"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/txtTtsProviderWarning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FF6B00"
+            android:textSize="12sp"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="Cartesia API Key (opcional)" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:hint="Cartesia API Key (optional)" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             app:endIconMode="password_toggle" android:layout_marginBottom="8dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editCartesiaKey" android:layout_width="match_parent"
@@ -65,7 +85,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:hint="ElevenLabs API Key (opcional)" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:hint="ElevenLabs API Key (optional)" style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             app:endIconMode="password_toggle" android:layout_marginBottom="16dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editElevenLabsKey" android:layout_width="match_parent"

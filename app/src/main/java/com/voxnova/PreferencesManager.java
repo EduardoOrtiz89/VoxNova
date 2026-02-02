@@ -11,8 +11,13 @@ public class PreferencesManager {
     private static final String KEY_ELEVENLABS_API_KEY = "elevenlabs_api_key";
     private static final String KEY_LANGUAGE = "language";
     private static final String KEY_SILENCE_TIMEOUT = "silence_timeout";
+    private static final String KEY_TTS_PROVIDER = "tts_provider";
 
     public static final String DEFAULT_LANGUAGE = "es-MX";
+    public static final String TTS_PROVIDER_AUTO = "auto";
+    public static final String TTS_PROVIDER_CARTESIA = "cartesia";
+    public static final String TTS_PROVIDER_ELEVENLABS = "elevenlabs";
+    public static final String TTS_PROVIDER_GOOGLE = "google";
     public static final int DEFAULT_SILENCE_TIMEOUT = 2000; // 2 seconds
 
     private final SharedPreferences prefs;
@@ -93,5 +98,13 @@ public class PreferencesManager {
             return lang.split("-");
         }
         return new String[]{lang, ""};
+    }
+
+    public String getTtsProvider() {
+        return prefs.getString(KEY_TTS_PROVIDER, TTS_PROVIDER_AUTO);
+    }
+
+    public void setTtsProvider(String provider) {
+        prefs.edit().putString(KEY_TTS_PROVIDER, provider).apply();
     }
 }
