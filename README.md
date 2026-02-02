@@ -65,6 +65,57 @@ Output APK: `app/build/outputs/apk/debug/app-debug.apk`
    - Choose **VoxNova**
    - Grant permissions when prompted
 
+## Pairing with OpenClaw
+
+Before using VoxNova, you need to pair it with your OpenClaw gateway:
+
+### Step 1: Get a Pairing Token
+
+Ask OpenClaw to generate a pairing token:
+
+```
+Generate a pairing token for my voice assistant
+```
+
+OpenClaw will provide a token that looks like: `vox_abc123...`
+
+### Step 2: Configure VoxNova
+
+1. Open VoxNova app
+2. Enter your **Gateway URL** (e.g., `ws://192.168.1.100:18789`)
+3. Enter the **Auth Token** you received
+4. Tap **Test Connection**
+
+### Step 3: Approve the Pairing
+
+When you test the connection, OpenClaw will generate a pairing code. You need to approve it using one of these methods:
+
+**Option A: Ask OpenClaw directly**
+
+In your OpenClaw chat (Telegram, Discord, etc.), say:
+
+```
+Approve pairing code ABC123
+```
+
+**Option B: Command line**
+
+```bash
+# Standard installation
+openclaw pairing approve <channel> <code>
+
+# Docker installation
+docker compose run --rm openclaw-cli pairing approve <channel> <code>
+```
+
+Replace `<channel>` with your channel type (e.g., `telegram`, `discord`) and `<code>` with the pairing code.
+
+### Pairing Notes
+
+- Pairing codes expire after **1 hour**
+- Maximum **3 pending requests** per channel
+- Once approved, VoxNova is added to your allowlist permanently
+
 ## Configuration
 
 Configure the following settings in the app:
